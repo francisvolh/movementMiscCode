@@ -58,8 +58,9 @@ ggplot() +
   geom_sf(data= st_as_sf(all.mcps), aes(fill = id, alpha = 0.5)) +
   scale_fill_discrete(name = "Animal id")+
   geom_point(data = test2, aes(x=LONGITUDE , y=LATITUDE, colour = as.factor(Bear_ID)))+
-  guides(alpha = "none", color = FALSE, size = FALSE)+
+  guides(alpha = "none", color = "none", size = "none")+
   theme_bw()
+
 
 
 
@@ -71,17 +72,34 @@ for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
   
   print(i) #shows only in the console which bears ae being worked
   
-  one.grizzly.mcp <- all.mcps[which(all.mcps$id == i),] #subset the ith bear from the large mcp object
-  one.grizzly.sample <- spsample(one.grizzly.mcp, n=2,"random") #select 2 random points from that 1 bear mcp
- 
-  pointsSamp <- as.data.frame(coordinates(one.grizzly.sample)) #convert the spatial object set of 2 points, into a dataframe
+  #sample the dataframe of 1 bear
+  one.grizzly.df <- test2[which(test2$Bear_ID == i),] 
   
-  pointsSamp$id <- i #give a label to those 2 points with the ith bear id
-
-  plot(one.grizzly.mcp) #make a simple plot of the mcp for the ith bear
-  plot(one.grizzly.sample, add=TRUE) #add the sampled points
+  sampleSize<-nrow(one.grizzly.df)
+  
+  
+  xy.obs <- one.grizzly.df[sample(1:nrow(one.grizzly.df), sampleSize*3, replace = TRUE), c("LONGITUDE", "LATITUDE")]
+  
+  xy.obs$Used <- TRUE
+  xy.obs$id <- i #give a label to those 2 points with the ith bear id
+  one.grizzly.mcp <- all.mcps[which(all.mcps$id == i),] #subset the ith bear from the large mcp object
+ 
+  xy.randomSp <- spsample(one.grizzly.mcp, n=sampleSize*3,"random") #select 2 random points from that 1 bear mcp
+ 
+  xy.random <- as.data.frame(coordinates(xy.randomSp)) #convert the spatial object set of 2 points, into a dataframe
+  
+  xy.random$Used <- FALSE
+  xy.random$id <- i #give a label to those 2 points with the ith bear id
+  colnames(xy.random) <- c("LONGITUDE", "LATITUDE", "Used", "id")
+  
+  
+  plot(xy.random$LONGITUDE, xy.random$LATITUDE, asp = 1, col = "darkblue", pch = 19, cex = 0.5)
+  points(xy.obs$LONGITUDE, xy.obs$LATITUDE, pch = 19, col = "orange", cex = 0.5)
+  
+  plot(one.grizzly.mcp, add = TRUE) #make a simple plot of the mcp for the ith bear
+  
   title(i)#give a title
-  sample.mcps <- rbind(sample.mcps, pointsSamp) #join the sample points dataframe of each bear into a main dataframe
+  sample.mcps <- rbind(sample.mcps, xy.obs, xy.random) #join the sample points dataframe of each bear into a main dataframe
   
   
 }
