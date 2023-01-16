@@ -65,8 +65,6 @@ ggplot() +
 
 
 ###to extract random points from each polygon
-#set number (not able to vary per bear yet)
-
 sample.mcps <- NULL #empty object to store points later
 for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
   
