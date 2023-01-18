@@ -193,14 +193,30 @@ ggplot(data_hmm1, aes(time, step, col = ID))+
   facet_grid(~as.factor(ID), scales = "free_x")+
   theme(strip.placement = "outside") 
 
-data_hmm1 %>% 
+summary1<-data_hmm1 %>% 
   group_by(ID) %>% 
   summarise(
+    n = n(),
     MeanDist = mean(step, na.rm=TRUE),
     SDDist = sd(step, na.rm=TRUE),
+    meanConc = mean(angle, na.rm=TRUE),
     timeRangeb = range(time)[1],
     timeRangee = range(time)[2]
   )
+hist(summary1$n)
+hist(summary1$MeanDist)
+hist(summary1$meanConc)
+
+min(summary1$n)
+
+min(summary1$SDDist)
+max(summary1$SDDist)
+min(summary1$MeanDist)
+max(summary1$MeanDist)
+
+min(summary1$meanConc)
+
+max(summary1$meanConc)
 
 ###############################################
 
@@ -209,7 +225,8 @@ dist <- list(step = "gamma", angle = "vm")
 
 # Initial parameters
 # (step mean 1, step mean 2, step SD 1, step SD 2) and (angle concentration 1, angle concentration 2)
-Par0_2s <- list(step = c(0.05, 0.2, 0.05, 0.2), angle = c(0.1, 3))
+#adding a zero mass for step, as needed by the model
+Par0_2s <- list(step = c(mean=c(0.05, 0.05), sd =c(0.2,0.2), c(0.001,0.5)), angle = c(0.1, 3))
 
 # Fit a 2-state HMM
 hmm1 <- fitHMM(data_hmm1, nbStates = 2, dist = dist, Par0 = Par0_2s)
