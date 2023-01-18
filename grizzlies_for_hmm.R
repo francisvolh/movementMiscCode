@@ -155,13 +155,13 @@ data_split %>%
 # Create adehabitat trajectory padded with NAs
 data_ade <- setNA(ltraj = as.ltraj(xy = data_split[, c("x", "y")], 
                                    date = data_split$time, 
-                                   id = data_split$ID), 
+                                   id = data_split$ID, infolocs = data.frame(ID_old=data_split[,c("ID_old")])), 
                   date.ref = data_split$time[1], 
                   dt = 60, tol = 5, units = "min")
 
 # Transform back to dataframe
-data_na <- ld(data_ade)[, c("id", "x", "y", "date")]
-colnames(data_na) <- c("ID", "x", "y", "time")
+data_na <- ld(data_ade)[, c("id", "x", "y", "date", "ID_old")]
+colnames(data_na) <- c("ID", "x", "y", "time","ID_old" )
 
 # Add temperatures for non-missing locations
 data_na$Elevation <- NA
@@ -183,7 +183,7 @@ plot(data_hmm1)
 
 head(data_hmm1, 10)
 
-
+hist(data_hmm1$step)
 ###############################################
 
 names(data_hmm1)
@@ -240,7 +240,9 @@ plot(hmm1, breaks = 25, ask = FALSE)
 
 
 # Initial parameters for 3-state model
-Par0_3s <- list(step = c(0.02, 0.1, 0.3, 0.02, 0.1, 0.3), 
+Par0_3s <- list(step = c(mean=c(0.02, 0.1, 0.), sd = c(0.1, 0.2, 0.3), c(0.001,0.5, 0,5)), 
+                angle = c(0.01, 0.1, 3))
+Par0_3s <- list(step = c(mean=c(0.01, 0.05, 0.1), sd =c(0.2,0.2,0.2), c(0.001,0.5, 0.1)), 
                 angle = c(0.01, 0.1, 3))
 
 # Fit 3-state HMM
@@ -257,10 +259,15 @@ head(viterbi(hmm2))
 data_hmm1$state_2st <- factor(viterbi(hmm1))
 data_hmm1$state_3st <- factor(viterbi(hmm2))
 
+data_hmm1$ID_old <- factor(data_split$ID_old)
+
 # Plot tracks, coloured by states
-ggplot(data_hmm1, aes(x, y, col = state_2st, group = ID)) +
-  geom_point(size = 0.5) + geom_path() +
-  coord_equal()
+ggplot(data_hmm1, aes(x, y, col = state_2st)) +
+  geom_point(size = 0.5) + #geom_path() +
+  #coord_equal()+
+  facet_grid(~as.factor(ID_old), scales = "free_x", switch = 'x')+
+  theme(strip.placement = "outside")
+  
 ggplot(data_hmm1, aes(x, y, col = state_3st, group = ID)) +
   geom_point(size = 0.5) + geom_path() +
   coord_equal()
