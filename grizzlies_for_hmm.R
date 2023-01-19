@@ -259,18 +259,37 @@ head(viterbi(hmm2))
 data_hmm1$state_2st <- factor(viterbi(hmm1))
 data_hmm1$state_3st <- factor(viterbi(hmm2))
 
-data_hmm1$ID_old <- factor(data_split$ID_old)
+#data_hmm1$ID_old <- factor(data_split$ID_old)
 
 # Plot tracks, coloured by states
-ggplot(data_hmm1, aes(x, y, col = state_2st)) +
+data_hmm1 %>% 
+  filter(!is.na(ID_old)) %>% 
+ggplot(aes(x, y, col = state_2st)) +
   geom_point(size = 0.5) + #geom_path() +
   #coord_equal()+
   facet_grid(~as.factor(ID_old), scales = "free_x", switch = 'x')+
   theme(strip.placement = "outside")
   
+
+data_hmm1 %>% 
+  filter(!is.na(ID_old)) %>% 
+  ggplot(aes(x, y, col = state_2st)) +
+  geom_point(size = 0.5) + #geom_path() +
+  #coord_equal()+
+  #facet_grid(~as.factor(ID_old), scales = "free_x", switch = 'x')+
+  theme(strip.placement = "outside")+
+  facet_trelliscope(~ID_old, ncol = 4, nrow =2, scales = "free")
+
+
 ggplot(data_hmm1, aes(x, y, col = state_3st, group = ID)) +
   geom_point(size = 0.5) + geom_path() +
   coord_equal()
+
+ggplot(data_hmm1, aes(x, y, col = state_3st)) +
+  geom_point(size = 0.5) + #geom_path() +
+  #coord_equal()+
+  facet_grid(~as.factor(ID_old), scales = "free_x", switch = 'x')+
+  theme(strip.placement = "outside")
 
 # Fit 2-state HMM with temperature covariate (linear or quadratic effect)
 hmm3 <- fitHMM(data_hmm1, nbStates = 2, dist = dist, 
