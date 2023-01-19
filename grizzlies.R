@@ -82,6 +82,10 @@ for (i in unique(test2$Bear_ID)) {
 
 cowplot::plot_grid(plotlist = plot_list)
 ###
+aaa<-plot_list[1:3]
+bbb<-plot_list[4:6]
+
+cowplot::plot_grid(plotlist = bbb)
 
 
 ###to extract random points from each polygon
