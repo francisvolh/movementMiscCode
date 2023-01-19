@@ -270,7 +270,7 @@ ggplot(aes(x, y, col = state_2st)) +
   facet_grid(~as.factor(ID_old), scales = "free_x", switch = 'x')+
   theme(strip.placement = "outside")
   
-
+library(trelliscopejs)
 data_hmm1 %>% 
   filter(!is.na(ID_old)) %>% 
   ggplot(aes(x, y, col = state_2st)) +

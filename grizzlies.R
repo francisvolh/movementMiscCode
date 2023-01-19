@@ -61,7 +61,27 @@ ggplot() +
   guides(alpha = "none", color = "none", size = "none")+
   theme_bw()
 
+##Ploting individual MCP and points in a a grid
+plot_list = list()
 
+for (i in unique(test2$Bear_ID)) {
+  
+  onemcp <- all.mcps[which(all.mcps$id == i),]
+  onetrack <- test2[which(test2$Bear_ID == i),]
+  
+  p <-ggplot() + 
+    geom_sf(data= st_as_sf(onemcp), aes(fill = id, alpha = 0.5)) +
+    scale_fill_discrete(name = "Animal id")+
+    geom_point(data = onetrack, aes(x=LONGITUDE , y=LATITUDE, colour = as.factor(Bear_ID)))+
+    guides(alpha = "none", color = "none", size = "none")+
+    theme_bw()
+  print(p)
+  plot_list[[i]] <- p
+  
+}
+
+cowplot::plot_grid(plotlist = plot_list)
+###
 
 
 ###to extract random points from each polygon
