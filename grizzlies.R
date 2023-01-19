@@ -62,7 +62,7 @@ ggplot() +
   theme_bw()
 
 ##Ploting individual MCP and points in a a grid
-plot_list = list()
+plot_list <- list()
 
 for (i in unique(test2$Bear_ID)) {
   
