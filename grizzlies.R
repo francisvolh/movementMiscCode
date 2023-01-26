@@ -88,7 +88,9 @@ bbb<-plot_list[4:6]
 cowplot::plot_grid(plotlist = bbb)
 
 
-###to extract random points from each polygon
+###to extract random points from each polygon, and plot mcp and kernels
+plot_listFULL <- list()
+
 sample.mcps <- NULL #empty object to store points later
 for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
   
@@ -127,20 +129,44 @@ for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
   kernelTest75<-getverticeshr(onekernel, 75)
   kernelTest95<-getverticeshr(onekernel, 95)
   
-  plot(xy.random$LONGITUDE, xy.random$LATITUDE, asp = 1, col = "darkblue", pch = 19, cex = 0.5)
-  points(xy.obs$LONGITUDE, xy.obs$LATITUDE, pch = 19, col = "orange", cex = 0.5)
+  #plot(xy.obs$LONGITUDE, xy.obs$LATITUDE, asp = 1, col = "darkblue", pch = 19, cex = 0.5)
+  ####points(xy.random$LONGITUDE, xy.random$LATITUDE, pch = 19, col = "orange", cex = 0.5)
+  #plot(one.grizzly.mcp, add = TRUE) #make a simple plot of the mcp for the ith bear
+  
+  #plot(kernelTest50, add = TRUE)
+  #plot(kernelTest75, add = TRUE)
+  #plot(kernelTest95, add = TRUE)
+  #title(i)#give a title
   
   
-  plot(one.grizzly.mcp, add = TRUE) #make a simple plot of the mcp for the ith bear
+  p <-ggplot() + 
+    geom_sf(data= sf::st_as_sf(kernelTest50), aes(fill = 'green', alpha = 0.5)#, aes(fill = id, alpha = 0.5)
+            )+
+    geom_sf(data= sf::st_as_sf(kernelTest75), aes(fill = 'green', alpha = 0.5)#, aes(fill = id, alpha = 0.5)
+    )+
+    geom_sf(data= sf::st_as_sf(kernelTest95), aes(fill = 'green', alpha = 0.5)#, aes(fill = id, alpha = 0.5)
+    )+
+    geom_sf(data= sf::st_as_sf(one.grizzly.mcp), aes(fill = id, alpha = 0.5)) +
+    scale_fill_discrete(name = "Animal id")+
+    geom_point(data = xy.obs, aes(x=LONGITUDE , y=LATITUDE))+
+    guides(alpha = "none", color = "none", size = "none")+
+    ggtitle(i)+
+    theme_bw()+
+    theme(legend.position = "none")
+  print(p)
   
-  plot(kernelTest50, add = TRUE)
-  plot(kernelTest75, add = TRUE)
-  plot(kernelTest95, add = TRUE)
-  title(i)#give a title
   sample.mcps <- rbind(sample.mcps, xy.obs, xy.random) #join the sample points dataframe of each bear into a main dataframe
   
+  plot_listFULL[[i]] <- p
   
 }
+
+cowplot::plot_grid(plotlist = plot_listFULL)
+###
+aaa<-plot_listFULL[1:3]
+bbb<-plot_listFULL[4:6]
+
+cowplot::plot_grid(plotlist = bbb)
 
 sample.mcps #revise the resulting dataframe
 
