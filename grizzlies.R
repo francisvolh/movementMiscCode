@@ -140,13 +140,13 @@ for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
   
   
   p <-ggplot() + 
-    geom_sf(data= sf::st_as_sf(kernelTest50), aes(fill = 'green', alpha = 0.5)#, aes(fill = id, alpha = 0.5)
+    geom_sf(data= sf::st_as_sf(kernelTest50), aes( alpha = 0.5), fill = 'green'#, aes(fill = id, alpha = 0.5)
             )+
-    geom_sf(data= sf::st_as_sf(kernelTest75), aes(fill = 'green', alpha = 0.5)#, aes(fill = id, alpha = 0.5)
+    geom_sf(data= sf::st_as_sf(kernelTest75), aes(alpha = 0.5), fill = 'green'#, aes(fill = id, alpha = 0.5)
     )+
-    geom_sf(data= sf::st_as_sf(kernelTest95), aes(fill = 'green', alpha = 0.5)#, aes(fill = id, alpha = 0.5)
+    geom_sf(data= sf::st_as_sf(kernelTest95), aes(alpha = 0.5), fill = 'green'#, aes(fill = id, alpha = 0.5)
     )+
-    geom_sf(data= sf::st_as_sf(one.grizzly.mcp), aes(fill = id, alpha = 0.5)) +
+    geom_sf(data= sf::st_as_sf(one.grizzly.mcp), aes(alpha = 0.5), fill = "blue") +
     scale_fill_discrete(name = "Animal id")+
     geom_point(data = xy.obs, aes(x=LONGITUDE , y=LATITUDE))+
     guides(alpha = "none", color = "none", size = "none")+
