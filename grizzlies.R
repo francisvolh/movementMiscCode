@@ -129,6 +129,7 @@ for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
   kernelTest75<-getverticeshr(onekernel, 75)
   kernelTest95<-getverticeshr(onekernel, 95)
   
+  #base plots
   #plot(xy.obs$LONGITUDE, xy.obs$LATITUDE, asp = 1, col = "darkblue", pch = 19, cex = 0.5)
   ####points(xy.random$LONGITUDE, xy.random$LATITUDE, pch = 19, col = "orange", cex = 0.5)
   #plot(one.grizzly.mcp, add = TRUE) #make a simple plot of the mcp for the ith bear
@@ -138,7 +139,19 @@ for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
   #plot(kernelTest95, add = TRUE)
   #title(i)#give a title
   
-  
+  #trying to adjust the scales a bit
+  if (abs(kernelTest95@bbox[2,1] - kernelTest95@bbox[2,2]) > abs(kernelTest95@bbox[1,1] - kernelTest95@bbox[1,2])) {
+    latitudePlot <- range(kernelTest95@bbox[2,])
+    L <-mean(kernelTest95@bbox[1,])
+    longitudePlot <- c(L-abs(kernelTest95@bbox[2,1] - kernelTest95@bbox[2,2]), L+abs(kernelTest95@bbox[2,1] - kernelTest95@bbox[2,2]))
+  }else{
+    longitudePlot <- range(kernelTest95@bbox[1,])
+    #L <-mean(kernelTest95@bbox[2,])
+    #latitudePlot <- c(L-abs(kernelTest95@bbox[1,1] - kernelTest95@bbox[1,2]), L+abs(kernelTest95@bbox[1,1] - kernelTest95@bbox[1,2]))
+    latitudePlot <- range(kernelTest95@bbox[2,])
+    }
+
+  #ggplots
   p <-ggplot() + 
     geom_sf(data= sf::st_as_sf(kernelTest50), aes( alpha = 0.5), fill = 'green'#, aes(fill = id, alpha = 0.5)
             )+
@@ -147,13 +160,29 @@ for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
     geom_sf(data= sf::st_as_sf(kernelTest95), aes(alpha = 0.5), fill = 'green'#, aes(fill = id, alpha = 0.5)
     )+
     geom_sf(data= sf::st_as_sf(one.grizzly.mcp), aes(alpha = 0.5), fill = "blue") +
-    scale_fill_discrete(name = "Animal id")+
+    #scale_fill_discrete(name = "Animal id")+
     geom_point(data = xy.obs, aes(x=LONGITUDE , y=LATITUDE))+
+    coord_sf(crs = 4326, xlim = longitudePlot , ylim = latitudePlot) +
     guides(alpha = "none", color = "none", size = "none")+
-    ggtitle(i)+
+    #ggtitle(i)+
     theme_bw()+
-    theme(legend.position = "none")
-  print(p)
+    theme(legend.position = "none")+
+    xlab(NULL)+
+    ylab(NULL)+
+
+#trying to fix the scale to less decimals
+   # scale_y_continuous(
+    #  labels = scales::number_format(accuracy =0.1#,
+                                     #decimal.mark = ','
+     #                                ))+
+    #
+    #scale_x_continuous(
+      #labels = scales::number_format(accuracy =0.1#,
+    #                                 #decimal.mark = ','
+     # ))+
+    #scale_y_continuous(labels = percent_format(accuracy = 1)) +
+    annotate("text",label=i, x=min(xy.obs$LONGITUDE), y=max(xy.obs$LATITUDE))
+ print(p)
   
   sample.mcps <- rbind(sample.mcps, xy.obs, xy.random) #join the sample points dataframe of each bear into a main dataframe
   
@@ -162,6 +191,7 @@ for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
 }
 
 cowplot::plot_grid(plotlist = plot_listFULL)
+
 ###
 aaa<-plot_listFULL[1:3]
 bbb<-plot_listFULL[4:6]
