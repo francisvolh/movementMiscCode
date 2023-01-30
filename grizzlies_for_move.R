@@ -17,7 +17,7 @@ rownames(dataframe1) <- 1:nrow(dataframe1)
 #getDuplicatedTimestamps(x=as.factor(dataframe1$Bear_ID), 
 #                       timestamps=dataframe1$datetime)
 
-#dataframe1CLEAN<-distinct(dataframe1,Bear_ID , datetime, .keep_all= TRUE)
+dataframe1<-distinct(dataframe1,Bear_ID , datetime, .keep_all= TRUE)
 
 #getDuplicatedTimestamps(x=as.factor(dataframe1CLEAN$Bear_ID), 
  #                       timestamps=dataframe1CLEAN$datetime)
@@ -43,6 +43,7 @@ head(movedata)
 
 myStackDF <- as.data.frame(movedata)
 head(myStackDF)
+
 myStackDF %>% 
   group_by(trackId) %>% 
   summarise(
@@ -71,6 +72,13 @@ ggplot(data = myStackDF, aes(x = x, y = y, color = trackId)) +
 ################# Loop for bursting
 library(maptools)
 listbursts <- list()
+
+allburstsdf<-NULL
+
+par(mfrow = c(3,2), 
+    mar = c(2,2,2,2))
+
+
 for (i in unique(movedata@trackId)) {
   oneanimal <- movedata[[i]]
   
@@ -79,12 +87,30 @@ for (i in unique(movedata@trackId)) {
   
   oneaniburst <- burst(x=oneanimal, f=DayNight)
   
+  onedf <- as.data.frame(oneaniburst)
+  onedf$Bear_ID <- i
   plot(oneaniburst, type="l", col=c("red", "black"), asp=1)
+  legend("bottomleft",legend=c("day","night"), col=c("red", "black"), pch=19)
   title(i)
+
+  plotBursts(oneaniburst,breaks=5, col=c("red", "black"), pch=19, add=F,main="Size of points: total time spent in burst segment", asp=1)
+  legend("bottomleft",legend=c("day","night"), col=c("red", "black"), pch=19)
   
-  
+  allburstsdf <- rbind(allburstsdf, onedf)
   listbursts <- append(listbursts,oneaniburst)
 }
 
 
 plot(table(diff(dataframe1$datetime)))
+
+allburstsdf %>% 
+  filter(!is.na(burstId)) %>% 
+  group_by(Bear_ID, burstId) %>% 
+  summarise(
+    TotDist = sum(distance),
+    Tottime = sum(timeLag),
+    MeanSpeed = mean(speed, na.rm=TRUE),
+    MeanLag = mean(timeLag, na.rm=TRUE),
+    MeanDist = mean(distance, na.rm=TRUE)
+   )
+
