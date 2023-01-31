@@ -96,7 +96,7 @@ for (i in unique(movedata@trackId)) { #loop over the moveStack object using the 
   #make the bursted object into a Dataframe for future use
   onedf <- as.data.frame(oneaniburst)
   
-  #create a column within the dataframe that contains the correponding bear ID 
+  #create a column within the dataframe that contains the corresponding bear ID 
   onedf$Bear_ID <- i
   
   #plot the burst, Basic style 
