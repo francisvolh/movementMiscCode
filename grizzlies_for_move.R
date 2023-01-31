@@ -23,7 +23,7 @@ dataframe1<-distinct(dataframe1,Bear_ID , datetime, .keep_all= TRUE)
  #                       timestamps=dataframe1CLEAN$datetime)
 
 
-dataframe1[209:210,]
+#dataframe1[209:210,]
 
 movedata <- move::move(x=dataframe1$LONGITUDE, 
                        y = dataframe1$LATITUDE, 
@@ -71,37 +71,54 @@ ggplot(data = myStackDF, aes(x = x, y = y, color = trackId)) +
 
 ################# Loop for bursting
 library(maptools)
-listbursts <- list()
 
-allburstsdf<-NULL
+listbursts <- list() #create an empty list to throw in the individual bursts
+
+allburstsdf<-NULL # create an empty dataframe to join all individuals burst now as dataframes
 
 par(mfrow = c(3,2), 
-    mar = c(2,2,2,2))
+    mar = c(2,2,2,2)) #set the plotting paramters for 4 plots in one panel, only works for base R plots
 
 
-for (i in unique(movedata@trackId)) {
-  oneanimal <- movedata[[i]]
+for (i in unique(movedata@trackId)) { #loop over the moveStack object using the trackIDs
   
-  DayNight <- rep("Day", n.locs(oneanimal)-1)
+  oneanimal <- movedata[[i]] #subset 1 animal from the moveStack
+  
+  #Steps to classify day night
+  DayNight <- rep("Day", n.locs(oneanimal)-1) #create a label Day for that animal
+  
+  #overwrite whenever corresponds to Night
   DayNight[solarpos(oneanimal[-n.locs(oneanimal)], timestamps(oneanimal)[-n.locs(oneanimal)])[,2] < -6 & solarpos(oneanimal[-1], timestamps(oneanimal)[-1])[,2] < -6] <- "Night"
   
+  #make an object with fragments/bursts corresponding to each break of day/night
   oneaniburst <- burst(x=oneanimal, f=DayNight)
   
+  #make the bursted object into a Dataframe for future use
   onedf <- as.data.frame(oneaniburst)
+  
+  #create a column within the dataframe that contains the correponding bear ID 
   onedf$Bear_ID <- i
+  
+  #plot the burst, Basic style 
   plot(oneaniburst, type="l", col=c("red", "black"), asp=1)
   legend("bottomleft",legend=c("day","night"), col=c("red", "black"), pch=19)
   title(i)
 
+  #plot the burst with points with relative size of time spent on each fragment/burst 
   plotBursts(oneaniburst,breaks=5, col=c("red", "black"), pch=19, add=F,main="Size of points: total time spent in burst segment", asp=1)
   legend("bottomleft",legend=c("day","night"), col=c("red", "black"), pch=19)
   
+  #now join all the DF versions of the individual burst with the next animal
   allburstsdf <- rbind(allburstsdf, onedf)
+  
+  #add the burst objects for each individual into a list, for future use, (maybe not needed)
   listbursts <- append(listbursts,oneaniburst)
 }
 
 
-plot(table(diff(dataframe1$datetime)))
+#plot(table(diff(dataframe1$datetime)))
+
+#make a summary for each animal and each category (day/night)
 
 allburstsdf %>% 
   filter(!is.na(burstId)) %>% 
