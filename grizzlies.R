@@ -200,4 +200,68 @@ cowplot::plot_grid(plotlist = bbb)
 
 sample.mcps #revise the resulting dataframe
 
+#plot mcps and kernels with base R
+
+
+par(mfrow = c(3,2), #define number of row and columns for the plots
+    mar = c(2,2,2,2)) #define margin sizes if needed
+###to extract random points from each polygon, and plot mcp and kernels
+plot_listFULL <- list()
+
+sample.mcps <- NULL #empty object to store points later
+for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
+  
+  print(i) #shows only in the console which bears ae being worked
+  
+  #sample the dataframe of 1 bear
+  one.grizzly.df <- test2[which(test2$Bear_ID == i),] 
+  
+  sampleSize<-nrow(one.grizzly.df)
+  
+  
+  xy.obs <- one.grizzly.df[sample(1:nrow(one.grizzly.df), sampleSize*3, replace = TRUE), c("LONGITUDE", "LATITUDE")]
+  
+  xy.obs$Used <- TRUE
+  xy.obs$id <- i #give a label to those 2 points with the ith bear id
+  one.grizzly.mcp <- all.mcps[which(all.mcps$id == i),] #subset the ith bear from the large mcp object
+  
+  xy.randomSp <- spsample(one.grizzly.mcp, n=sampleSize*3,"random") #select random points from that 1 bear mcp
+  
+  xy.random <- as.data.frame(coordinates(xy.randomSp)) #convert the spatial object set of 2 points, into a dataframe
+  
+  xy.random$Used <- FALSE
+  xy.random$id <- i #give a label to those 2 points with the ith bear id
+  colnames(xy.random) <- c("LONGITUDE", "LATITUDE", "Used", "id")
+  
+  onespf <- sf::st_as_sf(one.grizzly.df, 
+                         coords = c("LONGITUDE","LATITUDE"),
+                         crs = sf::st_crs(4326))
+  
+  # convert to sp object if needed
+  one.sp.points <- as(onespf, "Spatial")
+  
+  onekernel<-kernelUD(one.sp.points)
+  
+  kernelTest50<-getverticeshr(onekernel, 50)
+  kernelTest75<-getverticeshr(onekernel, 75)
+  kernelTest95<-getverticeshr(onekernel, 95)
+  
+  #base plots
+  plot(xy.obs$LONGITUDE, xy.obs$LATITUDE, asp = 1, col = "darkblue", pch = 19, cex = 0.5)
+  ####points(xy.random$LONGITUDE, xy.random$LATITUDE, pch = 19, col = "orange", cex = 0.5)
+  plot(one.grizzly.mcp, add = TRUE) #make a simple plot of the mcp for the ith bear
+  
+  plot(kernelTest50, add = TRUE)
+  plot(kernelTest75, add = TRUE)
+  plot(kernelTest95, add = TRUE)
+  title(i)#give a title
+  
+  
+  
+  
+  sample.mcps <- rbind(sample.mcps, xy.obs, xy.random) #join the sample points dataframe of each bear into a main dataframe
+  
+  #plot_listFULL[[i]] <- p
+  
+}
 
