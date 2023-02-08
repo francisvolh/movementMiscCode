@@ -15,15 +15,18 @@ w <- terra::project(my.sp.point, r)
 
 #extract the points and add them to the gps.points database
 a <- terra::extract(r, w)
-gps.points$slope <- a[,2]
+gps.points$Elevation <- a[,2]
 head(gps.points)
 
+#issues with the scale functions or the extraction of points
 gps.points$aspect.sc <- scale(gps.points$aspect, center =TRUE,  scale = TRUE)
-gps.points$elevation.sc <- scale(gps.points$elevation, center = TRUE)
-gps.points$for_road.sc <- scale(gps.points$for_road, center = TRUE)
-gps.points$slope.sc <- scale(gps.points$slope, center = TRUE)
+gps.points$elevation.sc <- scale(gps.points$Elevation, center = TRUE)
+gps.points$for_road.sc <- scale(gps.points$Forest_Road     , center = TRUE)
+gps.points$slope.sc <- scale(gps.points$Slope, center = TRUE)
+summary(gps.points)
 
-
+scaleddf<-scale(gps.points[ ,c("Slope","Elevation","Aspect","Forest_Road","aspect")], center = FALSE, scale =  FALSE)
+summary(scaleddf)
 #clean df a bit to model 
 gps.points<-gps.points %>% 
  mutate(
