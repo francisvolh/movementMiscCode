@@ -15,8 +15,13 @@ w <- terra::project(my.sp.point, r)
 
 #extract the points and add them to the gps.points database
 a <- terra::extract(r, w)
-gps.points$aspect <- a[,2]
+gps.points$slope <- a[,2]
 head(gps.points)
+
+gps.points$aspect.sc <- scale(gps.points$aspect, center =TRUE,  scale = TRUE)
+gps.points$elevation.sc <- scale(gps.points$elevation, center = TRUE)
+gps.points$for_road.sc <- scale(gps.points$for_road, center = TRUE)
+gps.points$slope.sc <- scale(gps.points$slope, center = TRUE)
 
 
 #clean df a bit to model 
@@ -35,11 +40,17 @@ gps.points<-gps.points%>%
   )
 
 head(gps.points)
+summary(gps.points)
 
 
 #try so gLMs
 
-modfull <- lme4::glmer(data=gps.points, Used ~ aspect + elev + for_road+ (1|id), family = binomial)
+modfull <- lme4::glmer(data=gps.points, Used ~ aspect.sc + elevation.sc + for_road.sc+ (1|id), family = binomial)
+
+options(na.action = "na.fail")
+dredge(modfull)
+
+summary(modfull)
 mod2 <- lme4::glmer(data=gps.points, Used ~ aspect + (1|id), family = binomial)
 mod1 <- lme4::glmer(data=gps.points, Used ~  elev + (1|id), family = binomial)
 summary(mod1)
