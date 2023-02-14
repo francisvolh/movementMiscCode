@@ -29,6 +29,8 @@ plot(test2$LONGITUDE, test2$LATITUDE) #replots with the clean data now
 spf <- sf::st_as_sf(test2, 
                     coords = c("LONGITUDE","LATITUDE"),
                     crs = sf::st_crs(4326))
+
+spf<-st_transform(spf, crs = 3157)
 #plot on mapview
 mapview::mapview(spf)
 
@@ -37,14 +39,17 @@ my.sp.point <- as(spf, "Spatial")
 
 #run the MCP over all the  bear at the same time, the function understands the ids and will do for each bear
 #note: it will only take 1 additional column of data besides lat and lon, and use as id for each individual
-all.mcps <- mcp(my.sp.point)
+all.mcps <- mcp(my.sp.point, unout = "km2")
 
 #view the MCP object with all the polygons
 all.mcps
 
 #convert the MCP spatial object into a simple dataframe with the vaues of the mcp for other use (means, sd, etc?)
 mcps.df <- as.data.frame(all.mcps)
+head(mcps.df)
 
+mcps.df$areaCon <- mcps.df$area/10000
+  
 #plots the MCPs quickly
 plot(all.mcps)
 
