@@ -46,10 +46,7 @@ all.mcps
 
 #convert the MCP spatial object into a simple dataframe with the vaues of the mcp for other use (means, sd, etc?)
 mcps.df <- as.data.frame(all.mcps)
-head(mcps.df)
 
-mcps.df$areaCon <- mcps.df$area/10000
-  
 #plots the MCPs quickly
 plot(all.mcps)
 
@@ -62,6 +59,7 @@ plot(all.mcps, col = scales::alpha(1:5, 0.5), add = TRUE)
 ggplot() + 
   geom_sf(data= sf::st_as_sf(all.mcps), aes(fill = id, alpha = 0.5)) +
   scale_fill_discrete(name = "Animal id")+
+  coord_sf(crs = 4326)+
   geom_point(data = test2, aes(x=LONGITUDE , y=LATITUDE, colour = as.factor(Bear_ID)))+
   guides(alpha = "none", color = "none", size = "none")+
   theme_bw()
@@ -77,6 +75,7 @@ for (i in unique(test2$Bear_ID)) {
   p <-ggplot() + 
     geom_sf(data= sf::st_as_sf(onemcp), aes(fill = id, alpha = 0.5)) +
     scale_fill_discrete(name = "Animal id")+
+    coord_sf(crs = 4326)+
     geom_point(data = onetrack, aes(x=LONGITUDE , y=LATITUDE, colour = as.factor(Bear_ID)))+
     guides(alpha = "none", color = "none", size = "none")+
     theme_bw()
@@ -124,6 +123,8 @@ for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
   onespf <- sf::st_as_sf(one.grizzly.df, 
                       coords = c("LONGITUDE","LATITUDE"),
                       crs = sf::st_crs(4326))
+  onespf<-st_transform(onespf, crs = 3157)
+  
   
   # convert to sp object if needed
   one.sp.points <- as(onespf, "Spatial")
@@ -145,16 +146,16 @@ for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
   #title(i)#give a title
   
   #trying to adjust the scales a bit
-  if (abs(kernelTest95@bbox[2,1] - kernelTest95@bbox[2,2]) > abs(kernelTest95@bbox[1,1] - kernelTest95@bbox[1,2])) {
-    latitudePlot <- range(kernelTest95@bbox[2,])
-    L <-mean(kernelTest95@bbox[1,])
-    longitudePlot <- c(L-abs(kernelTest95@bbox[2,1] - kernelTest95@bbox[2,2]), L+abs(kernelTest95@bbox[2,1] - kernelTest95@bbox[2,2]))
-  }else{
-    longitudePlot <- range(kernelTest95@bbox[1,])
+#  if (abs(kernelTest95@bbox[2,1] - kernelTest95@bbox[2,2]) > abs(kernelTest95@bbox[1,1] - kernelTest95@bbox[1,2])) {
+#    latitudePlot <- range(kernelTest95@bbox[2,])
+#    L <-mean(kernelTest95@bbox[1,])
+#    longitudePlot <- c(L-abs(kernelTest95@bbox[2,1] - kernelTest95@bbox[2,2]), L+abs(kernelTest95@bbox[2,1] - kernelTest95@bbox[2,2]))
+#  }else{
+#    longitudePlot <- range(kernelTest95@bbox[1,])
     #L <-mean(kernelTest95@bbox[2,])
     #latitudePlot <- c(L-abs(kernelTest95@bbox[1,1] - kernelTest95@bbox[1,2]), L+abs(kernelTest95@bbox[1,1] - kernelTest95@bbox[1,2]))
-    latitudePlot <- range(kernelTest95@bbox[2,])
-    }
+#    latitudePlot <- range(kernelTest95@bbox[2,])
+#    }
 
   #ggplots
   p <-ggplot() + 
@@ -166,8 +167,9 @@ for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
     )+
     geom_sf(data= sf::st_as_sf(one.grizzly.mcp), aes(alpha = 0.5), fill = "blue") +
     #scale_fill_discrete(name = "Animal id")+
+    coord_sf(crs = 4326)+
     geom_point(data = xy.obs, aes(x=LONGITUDE , y=LATITUDE))+
-    coord_sf(crs = 4326, xlim = longitudePlot , ylim = latitudePlot) +
+    #coord_sf(crs = 4326, xlim = longitudePlot , ylim = latitudePlot) +
     guides(alpha = "none", color = "none", size = "none")+
     #ggtitle(i)+
     theme_bw()+
@@ -212,7 +214,7 @@ par(mfrow = c(3,2), #define number of row and columns for the plots
     mar = c(2,2,2,2)) #define margin sizes if needed
 ###to extract random points from each polygon, and plot mcp and kernels
 plot_listFULL <- list()
-
+df.areas <- NULL
 sample.mcps <- NULL #empty object to store points later
 for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
   
@@ -241,15 +243,17 @@ for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
   onespf <- sf::st_as_sf(one.grizzly.df, 
                          coords = c("LONGITUDE","LATITUDE"),
                          crs = sf::st_crs(4326))
+  onespf<-st_transform(onespf, crs = 3157)
+  
   
   # convert to sp object if needed
   one.sp.points <- as(onespf, "Spatial")
   
   onekernel<-kernelUD(one.sp.points)
   
-  kernelTest50<-getverticeshr(onekernel, 50)
-  kernelTest75<-getverticeshr(onekernel, 75)
-  kernelTest95<-getverticeshr(onekernel, 95)
+  kernelTest50<-getverticeshr(onekernel, 50, unout = "km2")
+  kernelTest75<-getverticeshr(onekernel, 75, unout = "km2")
+  kernelTest95<-getverticeshr(onekernel, 95, unout = "km2")
   
   #base plots
   plot(xy.obs$LONGITUDE, xy.obs$LATITUDE, asp = 1, col = "darkblue", pch = 19, cex = 0.5)
@@ -261,12 +265,15 @@ for (i in unique(all.mcps$id)) { #loop over each bear id in the mcp object
   plot(kernelTest95, add = TRUE)
   title(i)#give a title
   
-  
-  
+  one.df <- as.data.frame(one.grizzly.mcp)
+  one.df$ud50area<-kernelTest50$area
+  one.df$ud75area<-kernelTest75$area
+  one.df$ud95area<-kernelTest95$area
   
   sample.mcps <- rbind(sample.mcps, xy.obs, xy.random) #join the sample points dataframe of each bear into a main dataframe
   
+  df.areas <- rbind(df.areas, one.df)
   #plot_listFULL[[i]] <- p
   
 }
-
+df.areas
