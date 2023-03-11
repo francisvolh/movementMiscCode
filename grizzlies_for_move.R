@@ -38,6 +38,8 @@ movedata$distance <- unlist(lapply(distance(movedata), c, NA))
 movedata$speed <- unlist(lapply(speed(movedata),c, NA ))
 movedata$timeLag <- unlist(lapply(timeLag(movedata, units="hours"),  c, NA))
 
+movedata$date <- as.Date(movedata$time)
+  
 head(movedata)
 
 
@@ -54,6 +56,10 @@ myStackDF %>%
     MeanDist = mean(distance, na.rm=TRUE),
     minDis= min(distance, na.rm=TRUE),
     maxDist = max(distance, na.rm=TRUE),
+    TotDist = sum(distance, na.rm=TRUE),
+    Tottime = sum(timeLag, na.rm=TRUE),
+    Num.Days = length(unique(date)),
+    Daily.Dis = TotDist/Num.Days
     #timeRangeb = range(time)[1],
     #timeRangee = range(time)[2]
   )
